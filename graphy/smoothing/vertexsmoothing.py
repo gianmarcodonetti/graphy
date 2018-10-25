@@ -2,10 +2,10 @@ import itertools
 from pyspark.rdd import RDD
 
 
-def vertex_contraction(links, vertices_to_remove, source_getter, target_getter,
-                       link_getter, obj_creator):
+def vertex_smoothing(links, vertices_to_remove, source_getter, target_getter,
+                     link_getter, obj_creator):
     """
-    Perform Vertex Contraction on a series of links data structure, based on a list of vertices to remove.
+    Perform Vertex Smoothing on a series of links data structure, based on a list of vertices to remove.
     :param links:
     :param vertices_to_remove:
     :param source_getter:
@@ -15,16 +15,16 @@ def vertex_contraction(links, vertices_to_remove, source_getter, target_getter,
     :return:
     """
     if isinstance(links, list):
-        contraction_func = remove_single_item_list
+        smoothing_func = remove_single_item_list
     elif isinstance(links, RDD):
-        contraction_func = remove_single_item_rdd
+        smoothing_func = remove_single_item_rdd
     else:
         raise NotImplementedError("The 'links' parameter should be of type list or RDD")
 
     links_cleaned = links
     for item in vertices_to_remove:
-        links_cleaned = contraction_func(links_cleaned, item, source_getter,
-                                         target_getter, link_getter, obj_creator)
+        links_cleaned = smoothing_func(links_cleaned, item, source_getter,
+                                       target_getter, link_getter, obj_creator)
     return links_cleaned
 
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
                           )
     vertices_cleaned_rdd = vertices_rdd.filter(lambda x: x['ITEM'] not in vertices_to_remove)
 
-    links_cleaned_rdd = vertex_contraction(
+    links_cleaned_rdd = vertex_smoothing(
         links_rdd, vertices_to_remove, source_getter_dict, target_getter_dict,
         link_getter_dict, obj_creator_dict
     )
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                                 map(lambda x: x[0], vertices_list))
     vertices_cleaned_list = filter(lambda x: x[0] not in vertices_to_remove, vertices_list)
 
-    links_cleaned_list = vertex_contraction(
+    links_cleaned_list = vertex_smoothing(
         links_list, vertices_to_remove, source_getter_tuple, target_getter_tuple,
         link_getter_tuple, obj_creator_tuple
     )
@@ -190,7 +190,7 @@ if __name__ == '__main__':
                                 map(lambda x: x[0], vertices_list))
     vertices_cleaned_list = filter(lambda x: x[0] not in vertices_to_remove, vertices_list)
 
-    links_cleaned_list = vertex_contraction(
+    links_cleaned_list = vertex_smoothing(
         links_list, vertices_to_remove, source_getter_tuple, target_getter_tuple,
         link_getter_tuple, obj_creator_tuple
     )
