@@ -103,22 +103,22 @@ if __name__ == '__main__':
     vertices_df.show()
     links_df.show()
 
-    # # RDDs
-    # vertices_rdd = vertices_df.rdd.map(lambda x: x.asDict())
-    # links_rdd = links_df.rdd.map(lambda x: x.asDict())
-    #
-    # vertices_to_remove = (vertices_rdd
-    #                       .map(lambda x: x['ITEM'])
-    #                       .filter(lambda x: x.startswith('V') or x.rfind('WORK') != -1)
-    #                       .collect()
-    #                       )
-    # vertices_cleaned_rdd = vertices_rdd.filter(lambda x: x['ITEM'] not in vertices_to_remove)
-    #
-    # links_cleaned_rdd = vertex_contraction(
-    #     links_rdd, vertices_to_remove, source_getter_dict, target_getter_dict,
-    #     link_getter_dict, obj_creator_dict
-    # )
-    # print("RDD -> Links cleaned:", links_cleaned_rdd.collect())
+    # RDDs
+    vertices_rdd = vertices_df.rdd.map(lambda x: x.asDict())
+    links_rdd = links_df.rdd.map(lambda x: x.asDict())
+
+    vertices_to_remove = (vertices_rdd
+                          .map(lambda x: x['ITEM'])
+                          .filter(lambda x: x.startswith('V') or x.rfind('WORK') != -1)
+                          .collect()
+                          )
+    vertices_cleaned_rdd = vertices_rdd.filter(lambda x: x['ITEM'] not in vertices_to_remove)
+
+    links_cleaned_rdd = vertex_contraction(
+        links_rdd, vertices_to_remove, source_getter_dict, target_getter_dict,
+        link_getter_dict, obj_creator_dict
+    )
+    print("RDD -> Links cleaned:", links_cleaned_rdd.collect())
 
     # LISTs
     vertices_to_remove = filter(lambda x: x.startswith('V') or x.rfind('WORK') != -1,
