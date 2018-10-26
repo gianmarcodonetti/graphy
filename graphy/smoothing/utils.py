@@ -1,3 +1,6 @@
+from pyspark.sql import Row
+
+
 # Utils functions ============================
 # TUPLE
 
@@ -66,3 +69,20 @@ def link_setter_dict(diz, l):
 
 def obj_creator_dict(s, l, t):
     return {'SOURCE': s, 'LINK': l, 'TARGET': t}
+
+
+# ROW
+def target_getter_df(df, suffix=''):
+    return df['TARGET' + suffix]
+
+
+def source_getter_df(df, suffix=''):
+    return df['SOURCE' + suffix]
+
+
+def link_getter_df(df, suffix=''):
+    return df['LINK' + suffix]
+
+
+def obj_creator_df(source, link, target):
+    return Row(**{'SOURCE': source, 'LINK': link, 'TARGET': target})

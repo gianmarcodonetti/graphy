@@ -1,5 +1,6 @@
 import itertools
 from pyspark.rdd import RDD
+from pyspark.sql.dataframe import DataFrame
 
 
 def vertex_smoothing(links, vertices_to_remove, source_getter, target_getter,
@@ -18,6 +19,8 @@ def vertex_smoothing(links, vertices_to_remove, source_getter, target_getter,
         smoothing_func = remove_single_item_list
     elif isinstance(links, RDD):
         smoothing_func = remove_single_item_rdd
+    elif isinstance(links, DataFrame):
+        smoothing_func = remove_single_item_df
     else:
         raise NotImplementedError("The 'links' parameter should be of type list or RDD")
 
@@ -61,6 +64,33 @@ def remove_single_item_rdd(links, vertex, source_getter, target_getter,
     return (links
             .filter(lambda x: not (target_getter(x) == vertex or source_getter(x) == vertex))
             .union(links_to_add)
+            )
+
+
+def remove_single_item_df(links, vertex, source_getter, target_getter,
+                          link_getter, obj_creator):
+    starting_from = links.filter(target_getter(links) == vertex)
+    ending_in = links.filter(source_getter(links) == vertex)
+
+    cross_join = (starting_from.toDF(*[c + '_left' for c in starting_from.columns])
+                  .crossJoin(ending_in.toDF(*[c + '_right' for c in ending_in.columns]))
+                  )
+
+    links_to_add = (cross_join
+                    .rdd
+                    .map(lambda row:
+                         obj_creator(source_getter(row, '_left'),
+                                     '-'.join([link_getter(row, '_left'), link_getter(row, '_right')]),
+                                     target_getter(row, '_right')
+                                     )
+                         )
+                    .toDF()
+                    )
+
+    return (links
+            .filter(~((target_getter(links) == vertex) | (source_getter(links) == vertex)))
+            .union(links_to_add.select(source_getter(links_to_add), link_getter(links_to_add),
+                                       target_getter(links_to_add)))
             )
 
 
