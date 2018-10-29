@@ -1,4 +1,7 @@
 # graphy
+
+[![Build Status](https://travis-ci.org/gianmarcodonetti/graphy.svg?branch=master)](https://travis-ci.org/gianmarcodonetti/graphy)
+
 Graph computations.
 
 The implemented methods are:
