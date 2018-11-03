@@ -1,6 +1,7 @@
 # graphy
 
 [![Build Status](https://travis-ci.org/gianmarcodonetti/graphy.svg?branch=master)](https://travis-ci.org/gianmarcodonetti/graphy)
+[![Test Coverage](https://codecov.io/gh/gianmarcodonetti/graphy/branch/master/graph/badge.svg)](https://codecov.io/gh/gianmarcodonetti/graphy)
 
 Graph computations.
 
