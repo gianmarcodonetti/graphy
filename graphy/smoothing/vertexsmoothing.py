@@ -2,9 +2,11 @@ import itertools
 from pyspark.rdd import RDD
 from pyspark.sql.dataframe import DataFrame
 
+DEFAULT_LINKS_MERGER = '-'.join
+
 
 def vertex_smoothing(links, vertices_to_remove, source_getter, target_getter,
-                     link_getter, obj_creator):
+                     link_getter, obj_creator, links_merger=DEFAULT_LINKS_MERGER):
     """
     Perform Vertex Smoothing on a series of links data structure, based on a list of vertices to remove.
     :param links:
@@ -13,6 +15,7 @@ def vertex_smoothing(links, vertices_to_remove, source_getter, target_getter,
     :param link_getter:
     :param target_getter:
     :param obj_creator:
+    :param links_merger:
     :return:
     """
     if isinstance(links, list):
@@ -27,18 +30,18 @@ def vertex_smoothing(links, vertices_to_remove, source_getter, target_getter,
     links_cleaned = links
     for item in vertices_to_remove:
         links_cleaned = smoothing_func(links_cleaned, item, source_getter,
-                                       target_getter, link_getter, obj_creator)
+                                       target_getter, link_getter, obj_creator, links_merger)
     return links_cleaned
 
 
 def remove_single_item_list(links, vertex, source_getter, target_getter,
-                            link_getter, obj_creator):
+                            link_getter, obj_creator, links_merger):
     starting_from = filter(lambda x: target_getter(x) == vertex, links)
     ending_in = filter(lambda x: source_getter(x) == vertex, links)
 
     links_to_add = map(lambda x:
                        obj_creator(source_getter(x[0]),
-                                   '-'.join([link_getter(x[0]), link_getter(x[1])]),
+                                   links_merger([link_getter(x[0]), link_getter(x[1])]),
                                    target_getter(x[1])),
                        itertools.product(starting_from, ending_in))
 
@@ -48,7 +51,7 @@ def remove_single_item_list(links, vertex, source_getter, target_getter,
 
 
 def remove_single_item_rdd(links, vertex, source_getter, target_getter,
-                           link_getter, obj_creator):
+                           link_getter, obj_creator, links_merger):
     starting_from = links.filter(lambda x: target_getter(x) == vertex)
     ending_in = links.filter(lambda x: source_getter(x) == vertex)
 
@@ -56,7 +59,7 @@ def remove_single_item_rdd(links, vertex, source_getter, target_getter,
                     .cartesian(ending_in)
                     .map(lambda x:
                          obj_creator(source_getter(x[0]),
-                                     '-'.join([link_getter(x[0]), link_getter(x[1])]),
+                                     links_merger([link_getter(x[0]), link_getter(x[1])]),
                                      target_getter(x[1]))
                          )
                     )
@@ -68,7 +71,7 @@ def remove_single_item_rdd(links, vertex, source_getter, target_getter,
 
 
 def remove_single_item_df(links, vertex, source_getter, target_getter,
-                          link_getter, obj_creator):
+                          link_getter, obj_creator, links_merger):
     starting_from = links.filter(target_getter(links) == vertex)
     ending_in = links.filter(source_getter(links) == vertex)
 
@@ -80,7 +83,7 @@ def remove_single_item_df(links, vertex, source_getter, target_getter,
                     .rdd
                     .map(lambda row:
                          obj_creator(source_getter(row, '_left'),
-                                     '-'.join([link_getter(row, '_left'), link_getter(row, '_right')]),
+                                     links_merger([link_getter(row, '_left'), link_getter(row, '_right')]),
                                      target_getter(row, '_right')
                                      )
                          )
